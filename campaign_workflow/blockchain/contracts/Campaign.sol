@@ -40,15 +40,13 @@ contract Campaign {
 		contributors[msg.sender] = true;
 	}
 
-	function createRequest(string memory description, address recipient, int value) external {
-		mapping(address => bool) approvalMap; // FIX THIS LINE
+	function createRequest(string memory desc, address r, int val) external {
 
 		Request memory newRequest = Request(
 			0,
-			description,
-			approvalMap,
-			recipient,
-			value,
+			desc,
+			r,
+			val,
 			false
 		);
 
@@ -66,8 +64,33 @@ contract Campaign {
 	}
 
 	function finalizeRequest(int index) external restricted {
+		require(!requests[index]); // If the request was approved, no need to proceed
 
-		// Add logic to check approval rate against number of contributors here..
+		/* 	
+			*** --- READ ME --- ***
+			Division of fractions not possible in solidity. So a workaround to check if 50% 
+			of approvals were received, I inverted the operation by dividing the total number of contributors 
+			by the number of approvals. The number should be 2 or less than 2 (inverse of 1/2 is 2).
+			
+			In order to make sure it is exactly 50% (or in this case, the inverse is exactly 2) make
+			sure the remainder from the inverse division operation equates to 0. 
+			
+			Solidity fails with modulo operations. So I ran a test to see if I subtract 
+			the remainder value from any count (approval/contributor any would work), I should return 
+			the count itself as subtracting 0 from anything does not change value. 
+			
+			Complex work around for not being able to do decimal division to check 50% of voters 
+			or the modulo division.
+
+			It is what it is. If you Math, you know ;)
+		*/
+
+		int remainder = contributorsCount % requests[index].approvalCount;
+		require(contributorsCount / requests[index].approvalCount <= 2);
+		require(requests[index].approvalCount - remainder == 0);
+
+
+		// If the checks pass, change approval status of given request to true. 
 		if (requests[index]){
 			requests[index].isComplete = true;
 		}
