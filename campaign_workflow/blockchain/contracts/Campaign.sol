@@ -8,7 +8,6 @@ contract Campaign {
 	int contributorsCount = 0;
 
 	// Provide a basic structure for each request to be created by manager
-
 	struct Request {
 		int approvalCount;
 		string description;
@@ -40,7 +39,7 @@ contract Campaign {
 		contributors[msg.sender] = true;
 	}
 
-	function createRequest(string memory desc, address r, int val) external {
+	function createRequest(string memory desc, address r, int val) external restricted {
 
 		Request memory newRequest = Request(
 			0,
@@ -53,7 +52,7 @@ contract Campaign {
 		requests.push(newRequest); // Push requests to main list
 	}
 
-	function approveRequest(int index) external restricted {
+	function approveRequest(int index) external {
 
 		// Run checks to see if contributor exists and if so, only deposited 1 vote
 		require(contributors[msg.sender]);
@@ -82,7 +81,7 @@ contract Campaign {
 			Complex work around for not being able to do decimal division to check 50% of voters 
 			or the modulo division.
 
-			It is what it is. If you Math, you know ;)
+			It is what it is. If you know Math, you know ;)
 		*/
 
 		int remainder = contributorsCount % requests[index].approvalCount;
@@ -91,9 +90,8 @@ contract Campaign {
 
 
 		// If the checks pass, change approval status of given request to true. 
-		if (requests[index]){
+		if (requests[index]) {
 			requests[index].isComplete = true;
 		}
-
 	}
 }
